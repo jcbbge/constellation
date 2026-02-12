@@ -101,13 +101,17 @@ class Observability {
         parent_event_id TEXT,
         parent_trace_id TEXT,
         parent_span_id TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        INDEX idx_kind (event_kind),
-        INDEX idx_session_id (context_session_id),
-        INDEX idx_ts (ts),
-        INDEX idx_machine_id (machine_id)
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
     `);
+    this.db.exec(`CREATE INDEX IF NOT EXISTS idx_kind ON events(event_kind)`);
+    this.db.exec(
+      `CREATE INDEX IF NOT EXISTS idx_session_id ON events(context_session_id)`,
+    );
+    this.db.exec(`CREATE INDEX IF NOT EXISTS idx_ts ON events(ts)`);
+    this.db.exec(
+      `CREATE INDEX IF NOT EXISTS idx_machine_id ON events(machine_id)`,
+    );
   }
 
   private generateULID(): string {
@@ -147,7 +151,7 @@ class Observability {
       JSON.stringify(event.data),
       event.parent?.event_id,
       event.parent?.trace_id,
-      event.parent?.span_id
+      event.parent?.span_id,
     );
   }
 
@@ -163,7 +167,7 @@ class Observability {
       parentEventId?: string;
       parentTraceId?: string;
       parentSpanId?: string;
-    }
+    },
   ): OmniEvent {
     return {
       schema_version: "1.0",
@@ -206,7 +210,7 @@ class Observability {
       parentEventId?: string;
       parentTraceId?: string;
       parentSpanId?: string;
-    }
+    },
   ): string {
     const event = this.createBaseEvent(kind, data, {
       ...options,
@@ -230,7 +234,7 @@ class Observability {
       parentEventId?: string;
       parentTraceId?: string;
       parentSpanId?: string;
-    } = {}
+    } = {},
   ): string {
     const data: Record<string, unknown> = {
       tool_name: toolName,
@@ -242,7 +246,8 @@ class Observability {
 
     if (phase === "after") {
       if (options.result !== undefined) data.result = options.result;
-      if (options.duration_ms !== undefined) data.duration_ms = options.duration_ms;
+      if (options.duration_ms !== undefined)
+        data.duration_ms = options.duration_ms;
     }
     if (options.error) data.error = options.error;
 
@@ -267,7 +272,7 @@ class Observability {
       parentEventId?: string;
       parentTraceId?: string;
       parentSpanId?: string;
-    } = {}
+    } = {},
   ): string {
     const data: Record<string, unknown> = {
       hook_name: hookName,
@@ -276,7 +281,8 @@ class Observability {
     };
 
     if (options.eventPayload) data.event_payload = options.eventPayload;
-    if (options.duration_ms !== undefined) data.duration_ms = options.duration_ms;
+    if (options.duration_ms !== undefined)
+      data.duration_ms = options.duration_ms;
 
     return this.writeEvent("constellation:hook_fired", data, {
       sessionId: options.sessionId,
@@ -299,7 +305,7 @@ class Observability {
       parentEventId?: string;
       parentTraceId?: string;
       parentSpanId?: string;
-    } = {}
+    } = {},
   ): string {
     const data: Record<string, unknown> = {
       agent_name: agentName,
@@ -330,7 +336,7 @@ class Observability {
       parentEventId?: string;
       parentTraceId?: string;
       parentSpanId?: string;
-    } = {}
+    } = {},
   ): string {
     const data: Record<string, unknown> = {
       skill_name: skillName,
@@ -359,7 +365,7 @@ class Observability {
       parentEventId?: string;
       parentTraceId?: string;
       parentSpanId?: string;
-    } = {}
+    } = {},
   ): string {
     const data: Record<string, unknown> = {
       command_name: commandName,
@@ -367,7 +373,8 @@ class Observability {
     };
 
     if (options.args) data.args = options.args;
-    if (options.duration_ms !== undefined) data.duration_ms = options.duration_ms;
+    if (options.duration_ms !== undefined)
+      data.duration_ms = options.duration_ms;
     if (options.result) data.result = options.result;
 
     return this.writeEvent("constellation:command_executed", data, {
@@ -389,7 +396,7 @@ class Observability {
       parentEventId?: string;
       parentTraceId?: string;
       parentSpanId?: string;
-    } = {}
+    } = {},
   ): string {
     const data: Record<string, unknown> = {
       plugin_name: pluginName,
@@ -424,7 +431,7 @@ class Observability {
       parentEventId?: string;
       parentTraceId?: string;
       parentSpanId?: string;
-    } = {}
+    } = {},
   ): string {
     const data: Record<string, unknown> = {
       error_type: errorType,
@@ -436,9 +443,11 @@ class Observability {
 
     if (options.errorCode) data.error_code = options.errorCode;
     if (options.toolName) data.tool_name = options.toolName;
-    if (options.invariantsViolated) data.invariants_violated = options.invariantsViolated;
+    if (options.invariantsViolated)
+      data.invariants_violated = options.invariantsViolated;
     if (options.rawOutput) data.raw_output = options.rawOutput;
-    if (options.recoveryActions) data.recovery_actions = options.recoveryActions;
+    if (options.recoveryActions)
+      data.recovery_actions = options.recoveryActions;
 
     return this.writeEvent("error", data, {
       sessionId: options.sessionId,
@@ -461,7 +470,7 @@ class Observability {
       parentEventId?: string;
       parentTraceId?: string;
       parentSpanId?: string;
-    } = {}
+    } = {},
   ): string {
     const data: Record<string, unknown> = {
       metric_name: metricName,
@@ -495,7 +504,7 @@ class Observability {
       duration_ms?: number;
       parentEventId?: string;
       parentTraceId?: string;
-    } = {}
+    } = {},
   ): string {
     const data: Record<string, unknown> = {
       span_id: spanId,
@@ -508,7 +517,8 @@ class Observability {
     if (options.parentSpanId) data.parent_span_id = options.parentSpanId;
     if (options.traceId) data.trace_id = options.traceId;
     if (options.endTs) data.end_ts = options.endTs;
-    if (options.duration_ms !== undefined) data.duration_ms = options.duration_ms;
+    if (options.duration_ms !== undefined)
+      data.duration_ms = options.duration_ms;
 
     return this.writeEvent("span", data, {
       sessionId: options.sessionId,
@@ -530,7 +540,7 @@ class Observability {
       parentEventId?: string;
       parentTraceId?: string;
       parentSpanId?: string;
-    } = {}
+    } = {},
   ): string {
     const data: Record<string, unknown> = {
       session_id: sessionId,
@@ -539,7 +549,8 @@ class Observability {
     if (options.agent) data.agent = options.agent;
     if (options.model) data.model = options.model;
     if (options.directory) data.directory = options.directory;
-    if (options.parentSessionId) data.parent_session_id = options.parentSessionId;
+    if (options.parentSessionId)
+      data.parent_session_id = options.parentSessionId;
 
     return this.writeEvent("session_start", data, {
       sessionId,
@@ -558,14 +569,16 @@ class Observability {
       parentEventId?: string;
       parentTraceId?: string;
       parentSpanId?: string;
-    } = {}
+    } = {},
   ): string {
     const data: Record<string, unknown> = {
       session_id: sessionId,
     };
 
-    if (options.duration_ms !== undefined) data.duration_ms = options.duration_ms;
-    if (options.messageCount !== undefined) data.message_count = options.messageCount;
+    if (options.duration_ms !== undefined)
+      data.duration_ms = options.duration_ms;
+    if (options.messageCount !== undefined)
+      data.message_count = options.messageCount;
 
     return this.writeEvent("session_end", data, {
       sessionId,
@@ -583,7 +596,7 @@ class Observability {
       parentEventId?: string;
       parentTraceId?: string;
       parentSpanId?: string;
-    } = {}
+    } = {},
   ): string {
     const data: Record<string, unknown> = {
       session_id: sessionId,
@@ -681,7 +694,9 @@ class Observability {
 // Singleton instance
 let observabilityInstance: Observability | null = null;
 
-export function initializeObservability(dataDir: string = "data"): Observability {
+export function initializeObservability(
+  dataDir: string = "data",
+): Observability {
   if (!observabilityInstance) {
     observabilityInstance = new Observability(dataDir);
   }
