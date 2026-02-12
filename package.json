@@ -1,0 +1,16 @@
+{
+  "name": "constellation",
+  "version": "0.1.0",
+  "description": "an atlas of agents for intentional software development",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "build": "bun build src/index.ts --outdir dist",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@opencode-ai/sdk": "latest",
+    "@opencode-ai/plugin": "latest"
+  }
+}
